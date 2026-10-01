@@ -3,7 +3,7 @@
 Small full-stack application for simulated snail-racing statistics and balance
 top-ups through SnailPay. The project is being built in reviewed milestones.
 
-## Current milestone: local persistence
+## Current milestone: local login
 
 The technical foundation now includes explicit domain contracts and a single
 browser-persistence boundary:
@@ -16,10 +16,26 @@ browser-persistence boundary:
 - a minimal UI shell and API health endpoint;
 - typed user and session models;
 - the typed SnailPay request and response contract;
-- a tested `storageService` for users, sessions, balances and transactions.
+- a tested `storageService` for users, sessions, balances and transactions;
+- an accessible registration form with validation and duplicate-email handling;
+- credential verification through a responsive login form.
 
-Registration, authentication, dashboard data and SnailPay behavior are
-intentionally not implemented yet.
+Active-session persistence, protected routes, dashboard data and SnailPay
+behavior are intentionally not implemented yet.
+
+### Local password handling
+
+Registration derives a password hash with PBKDF2-SHA-256, a random 16-byte
+salt and 100,000 iterations before saving the user. The original password is
+never written to `localStorage`.
+
+This is defense-in-depth for the exercise, not production authentication. The
+entire account system still runs in the browser, so a real application would
+authenticate and store password hashes on a trusted server.
+
+The login module verifies the stored PBKDF2 value without exposing whether an
+email or password was incorrect. Creating and restoring a session belongs to
+the next milestone.
 
 ### Storage keys
 
