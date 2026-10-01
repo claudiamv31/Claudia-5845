@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { FormField } from '../components/FormField';
 import { authService } from '../services/authService';
+import { isValidEmail } from '../utils/validation';
 
 interface RegistrationErrors {
   fullName?: string;
@@ -8,8 +9,6 @@ interface RegistrationErrors {
   password?: string;
   passwordConfirmation?: string;
 }
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function validateRegistration(
   fullName: string,
@@ -25,7 +24,7 @@ function validateRegistration(
 
   if (!email.trim()) {
     errors.email = 'Email is required.';
-  } else if (!EMAIL_PATTERN.test(email.trim())) {
+  } else if (!isValidEmail(email)) {
     errors.email = 'Enter a valid email address.';
   }
 
@@ -104,7 +103,10 @@ export function RegisterPage() {
         {isRegistered ? (
           <div className="success-message" role="status">
             <strong>Account created</strong>
-            <p>Your local profile is ready. You can sign in next.</p>
+            <p>Your local profile is ready.</p>
+            <a className="text-link" href="/login">
+              Continue to sign in
+            </a>
           </div>
         ) : (
           <form className="registration-form" onSubmit={handleSubmit} noValidate>
@@ -164,6 +166,13 @@ export function RegisterPage() {
             <button type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Creating account…' : 'Create account'}
             </button>
+
+            <p className="auth-footer">
+              Already registered?{' '}
+              <a className="text-link" href="/login">
+                Sign in
+              </a>
+            </p>
           </form>
         )}
       </section>

@@ -159,6 +159,23 @@ p {
   font-size: 1.125rem;
 }
 
+.auth-footer {
+  justify-self: center;
+  color: #60736d;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.text-link {
+  color: #1e6f5c;
+  font-weight: 750;
+  text-underline-offset: 3px;
+}
+
+.text-link:hover {
+  color: #155746;
+}
+
 @media (max-width: 520px) {
   .app-shell {
     padding: 0;

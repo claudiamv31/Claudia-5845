@@ -1,5 +1,5 @@
 import type { User } from '../types/auth';
-import { hashPassword } from '../utils/password';
+import { hashPassword, verifyPassword } from '../utils/password';
 import { storageService } from './storageService';
 
 export interface RegistrationInput {
@@ -11,6 +11,15 @@ export interface RegistrationInput {
 export type RegistrationResult =
   | { ok: true; user: User }
   | { ok: false; reason: 'email_exists' };
+
+export interface LoginInput {
+  email: string;
+  password: string;
+}
+
+export type LoginResult =
+  | { ok: true; user: User }
+  | { ok: false; reason: 'invalid_credentials' };
 
 async function register(input: RegistrationInput): Promise<RegistrationResult> {
   const normalizedEmail = input.email.trim().toLowerCase();
@@ -32,6 +41,25 @@ async function register(input: RegistrationInput): Promise<RegistrationResult> {
   return { ok: true, user };
 }
 
+async function login(input: LoginInput): Promise<LoginResult> {
+  const registeredUser = storageService.getUser();
+  const normalizedEmail = input.email.trim().toLowerCase();
+
+  if (!registeredUser || registeredUser.email.toLowerCase() !== normalizedEmail) {
+    return { ok: false, reason: 'invalid_credentials' };
+  }
+
+  const passwordMatches = await verifyPassword(
+    input.password,
+    registeredUser.passwordHash,
+  );
+
+  return passwordMatches
+    ? { ok: true, user: registeredUser }
+    : { ok: false, reason: 'invalid_credentials' };
+}
+
 export const authService = {
   register,
+  login,
 };
