@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { FormField } from '../components/FormField';
-import { authService } from '../services/authService';
-import type { User } from '../types/auth';
+import { useAuth } from '../context/AuthContext';
 import { isValidEmail } from '../utils/validation';
 
 interface LoginErrors {
@@ -26,10 +25,10 @@ function validateLogin(email: string, password: string): LoginErrors {
 }
 
 export function LoginPage() {
+  const { login, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [authenticatedUser, setAuthenticatedUser] = useState<User | null>(null);
   const [errors, setErrors] = useState<LoginErrors>({});
   const [credentialError, setCredentialError] = useState<string | null>(null);
 
@@ -58,14 +57,12 @@ export function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      const result = await authService.login({ email, password });
+      const result = await login({ email, password });
 
       if (!result.ok) {
         setCredentialError('Email or password is incorrect.');
         return;
       }
-
-      setAuthenticatedUser(result.user);
     } catch {
       setCredentialError('We could not sign you in. Please try again.');
     } finally {
@@ -80,13 +77,17 @@ export function LoginPage() {
         <h1 id="login-title">Welcome back</h1>
         <p>Sign in to continue to your racing dashboard.</p>
 
-        {authenticatedUser ? (
+        {user ? (
           <div className="success-message" role="status">
-            <strong>Welcome back, {authenticatedUser.fullName}</strong>
-            <p>Your credentials were verified successfully.</p>
+            <strong>Welcome back, {user.fullName}</strong>
+            <p>Your session is active.</p>
           </div>
         ) : (
-          <form className="registration-form" onSubmit={handleSubmit} noValidate>
+          <form
+            className="registration-form"
+            onSubmit={handleSubmit}
+            noValidate
+          >
             <FormField
               id="login-email"
               label="Email"

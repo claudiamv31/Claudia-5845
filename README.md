@@ -3,7 +3,7 @@
 Small full-stack application for simulated snail-racing statistics and balance
 top-ups through SnailPay. The project is being built in reviewed milestones.
 
-## Current milestone: local login
+## Current milestone: protected routes
 
 The technical foundation now includes explicit domain contracts and a single
 browser-persistence boundary:
@@ -18,10 +18,14 @@ browser-persistence boundary:
 - the typed SnailPay request and response contract;
 - a tested `storageService` for users, sessions, balances and transactions;
 - an accessible registration form with validation and duplicate-email handling;
-- credential verification through a responsive login form.
+- credential verification through a responsive login form;
+- session creation, restoration and logout through a shared authentication
+  context;
+- a reusable `ProtectedRoute` that redirects unauthenticated visitors to login.
 
-Active-session persistence, protected routes, dashboard data and SnailPay
-behavior are intentionally not implemented yet.
+The dashboard, simulated racing data and SnailPay behavior are intentionally
+not implemented yet. `ProtectedRoute` will be connected to the dashboard route
+when that screen is introduced in the next milestone.
 
 ### Local password handling
 
@@ -34,8 +38,10 @@ entire account system still runs in the browser, so a real application would
 authenticate and store password hashes on a trusted server.
 
 The login module verifies the stored PBKDF2 value without exposing whether an
-email or password was incorrect. Creating and restoring a session belongs to
-the next milestone.
+email or password was incorrect. A successful login stores only the user ID
+and authentication flag in the session. `AuthProvider` restores that user on
+page load, while logout removes only the session and preserves registration
+data.
 
 ### Storage keys
 

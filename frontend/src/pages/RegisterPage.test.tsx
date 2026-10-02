@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { AuthProvider } from '../context/AuthContext';
 import { storageService } from '../services/storageService';
 import { RegisterPage } from './RegisterPage';
 
@@ -36,6 +37,14 @@ function completeRegistrationForm(
   fireEvent.click(screen.getByRole('button', { name: /create account/i }));
 }
 
+function renderRegistration() {
+  return render(
+    <AuthProvider>
+      <RegisterPage />
+    </AuthProvider>,
+  );
+}
+
 describe('RegisterPage', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -46,7 +55,7 @@ describe('RegisterPage', () => {
   });
 
   it('shows an error when password confirmation does not match', () => {
-    render(<RegisterPage />);
+    renderRegistration();
 
     completeRegistrationForm({ passwordConfirmation: 'Different123' });
 
@@ -54,7 +63,7 @@ describe('RegisterPage', () => {
   });
 
   it('registers a user with a hashed password and zero balance', async () => {
-    render(<RegisterPage />);
+    renderRegistration();
 
     completeRegistrationForm({ email: 'ADA@EXAMPLE.COM' });
 
@@ -70,13 +79,13 @@ describe('RegisterPage', () => {
   });
 
   it('does not replace an account when the email is already registered', async () => {
-    const firstRender = render(<RegisterPage />);
+    const firstRender = renderRegistration();
 
     completeRegistrationForm();
     await screen.findByText(/account created/i);
     firstRender.unmount();
 
-    render(<RegisterPage />);
+    renderRegistration();
     completeRegistrationForm({
       fullName: 'Grace Snail',
       email: 'ADA@EXAMPLE.COM',
@@ -95,7 +104,7 @@ describe('RegisterPage', () => {
   });
 
   it('shows field errors for invalid registration details', () => {
-    render(<RegisterPage />);
+    renderRegistration();
 
     completeRegistrationForm({
       fullName: '',
@@ -114,7 +123,7 @@ describe('RegisterPage', () => {
     vi.spyOn(crypto.subtle, 'importKey').mockRejectedValue(
       new Error('Web Crypto unavailable'),
     );
-    render(<RegisterPage />);
+    renderRegistration();
 
     completeRegistrationForm();
 

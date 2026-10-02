@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { FormField } from '../components/FormField';
-import { authService } from '../services/authService';
+import { useAuth } from '../context/AuthContext';
 import { isValidEmail } from '../utils/validation';
 
 interface RegistrationErrors {
@@ -44,6 +44,7 @@ function validateRegistration(
 }
 
 export function RegisterPage() {
+  const { register } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -73,7 +74,7 @@ export function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      const result = await authService.register({ fullName, email, password });
+      const result = await register({ fullName, email, password });
 
       if (!result.ok) {
         setErrors((currentErrors) => ({

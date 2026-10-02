@@ -6,6 +6,8 @@ export interface User {
   balance: number;
 }
 
+export type AuthenticatedUser = Omit<User, 'passwordHash'>;
+
 export interface Session {
   userId: User['id'];
   authenticated: true;
