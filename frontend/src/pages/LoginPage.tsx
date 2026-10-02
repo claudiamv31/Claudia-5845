@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FormField } from '../components/FormField';
 import { useAuth } from '../context/AuthContext';
 import { isValidEmail } from '../utils/validation';
@@ -26,6 +27,7 @@ function validateLogin(email: string, password: string): LoginErrors {
 
 export function LoginPage() {
   const { login, user } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,6 +65,8 @@ export function LoginPage() {
         setCredentialError('Email or password is incorrect.');
         return;
       }
+
+      navigate('/dashboard', { replace: true });
     } catch {
       setCredentialError('We could not sign you in. Please try again.');
     } finally {
