@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { AuthProvider } from '../context/AuthContext';
 import { authService } from '../services/authService';
 import { storageService } from '../services/storageService';
 import { LoginPage } from './LoginPage';
@@ -12,6 +13,14 @@ function submitLogin(email: string, password: string): void {
     target: { value: password },
   });
   fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+}
+
+function renderLogin(): void {
+  render(
+    <AuthProvider>
+      <LoginPage />
+    </AuthProvider>,
+  );
 }
 
 describe('LoginPage', () => {
@@ -29,18 +38,21 @@ describe('LoginPage', () => {
   });
 
   it('authenticates a registered user with valid credentials', async () => {
-    render(<LoginPage />);
+    renderLogin();
 
     submitLogin('ADA@EXAMPLE.COM', 'Caracol123');
 
     expect(
       await screen.findByText(/welcome back, ada caracol/i),
     ).toBeInTheDocument();
-    expect(storageService.getSession()).toBeNull();
+    expect(storageService.getSession()).toEqual({
+      userId: storageService.getUser()?.id,
+      authenticated: true,
+    });
   });
 
   it('shows a generic error for invalid credentials', async () => {
-    render(<LoginPage />);
+    renderLogin();
 
     submitLogin('ada@example.com', 'WrongPassword');
 
@@ -67,7 +79,7 @@ describe('LoginPage', () => {
   });
 
   it('uses the same generic error for an unknown email', async () => {
-    render(<LoginPage />);
+    renderLogin();
 
     submitLogin('unknown@example.com', 'Caracol123');
 
@@ -77,7 +89,7 @@ describe('LoginPage', () => {
   });
 
   it('shows field errors for invalid login details', () => {
-    render(<LoginPage />);
+    renderLogin();
 
     fireEvent.change(screen.getByLabelText(/^email$/i), {
       target: { value: 'not-an-email' },
@@ -93,7 +105,7 @@ describe('LoginPage', () => {
     vi.spyOn(crypto.subtle, 'importKey').mockRejectedValue(
       new Error('Web Crypto unavailable'),
     );
-    render(<LoginPage />);
+    renderLogin();
 
     submitLogin('ada@example.com', 'Caracol123');
 
