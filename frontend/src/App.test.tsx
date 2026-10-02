@@ -45,6 +45,26 @@ describe('dashboard route', () => {
     ).toBeDisabled();
   });
 
+  it('describes won and lost bets in the performance chart', async () => {
+    await renderAuthenticatedDashboard();
+
+    expect(
+      screen.getByRole('img', {
+        name: /bet outcomes: 14 won and 6 lost/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('describes the victory total for every snail', async () => {
+    await renderAuthenticatedDashboard();
+
+    expect(
+      screen.getByRole('img', {
+        name: /snail victories: turbo 2, shelly 1, rocket 1, dash 0, peanut 1, flash 1/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
   it('returns to login after logout without deleting the account', async () => {
     await renderAuthenticatedDashboard();
     const registeredUser = storageService.getUser();

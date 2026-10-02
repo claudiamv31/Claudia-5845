@@ -1,3 +1,5 @@
+import { BetResultsChart } from '../components/charts/BetResultsChart';
+import { SnailWinsChart } from '../components/charts/SnailWinsChart';
 import { useAuth } from '../context/AuthContext';
 import { formatUsd } from '../utils/currency';
 
@@ -50,34 +52,13 @@ export function DashboardPage() {
               <span className="eyebrow">Race insights</span>
               <h2 id="performance-title">Performance</h2>
             </div>
-            <p>Analytics will appear after racing data is added.</p>
+            <p>Stable results from six simulated races.</p>
           </div>
 
           <div className="performance-grid">
-            <article className="dashboard-empty-panel">
-              <div className="dashboard-empty-panel-icon" aria-hidden="true">
-                <span />
-              </div>
-              <div>
-                <h3>Bet results</h3>
-                <p>No betting history yet.</p>
-              </div>
-            </article>
+            <BetResultsChart />
 
-            <article className="dashboard-empty-panel">
-              <div
-                className="dashboard-empty-panel-icon bars"
-                aria-hidden="true"
-              >
-                <span />
-                <span />
-                <span />
-              </div>
-              <div>
-                <h3>Snail victories</h3>
-                <p>Race results will appear here.</p>
-              </div>
-            </article>
+            <SnailWinsChart />
           </div>
         </section>
       </section>

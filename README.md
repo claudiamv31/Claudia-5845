@@ -3,7 +3,7 @@
 Small full-stack application for simulated snail-racing statistics and balance
 top-ups through SnailPay. The project is being built in reviewed milestones.
 
-## Current milestone: simulated race data
+## Current milestone: performance charts
 
 The technical foundation now includes explicit domain contracts and a single
 browser-persistence boundary:
@@ -23,12 +23,12 @@ browser-persistence boundary:
   context;
 - a reusable `ProtectedRoute` that redirects unauthenticated visitors to login;
 - a protected, responsive dashboard shell with account balance and logout;
-- a stable six-snail, six-race dataset with betting totals for analytics.
+- a stable six-snail, six-race dataset with betting totals for analytics;
+- accessible donut and bar charts powered by the deterministic dataset.
 
-Charts and SnailPay behavior are intentionally not implemented yet. The
-deterministic race and betting results are ready for visualization, while
-charts and payment actions remain unavailable until their modules are
-introduced.
+SnailPay behavior is intentionally not implemented yet. The dashboard now
+visualizes the race and betting results, while the payment action remains
+disabled until its integration module is introduced.
 
 ### Local password handling
 
