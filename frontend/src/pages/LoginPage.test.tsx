@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
 import { authService } from '../services/authService';
 import { storageService } from '../services/storageService';
@@ -18,7 +19,9 @@ function submitLogin(email: string, password: string): void {
 function renderLogin(): void {
   render(
     <AuthProvider>
-      <LoginPage />
+      <MemoryRouter>
+        <LoginPage />
+      </MemoryRouter>
     </AuthProvider>,
   );
 }
