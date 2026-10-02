@@ -1,5 +1,8 @@
 import type { Session, User } from '../types/auth';
-import type { Transaction } from '../types/transaction';
+import type {
+  Transaction,
+  TransactionApplicationResult,
+} from '../types/transaction';
 
 const STORAGE_KEYS = {
   user: 'snail-racing:user',
@@ -45,7 +48,9 @@ function isTransaction(value: unknown): value is Transaction {
     Number.isFinite(value.amount) &&
     value.amount > 0 &&
     typeof value.createdAt === 'string' &&
-    typeof value.reference === 'string'
+    typeof value.reference === 'string' &&
+    /^\d{16}$/.test(String(value.cardNumber)) &&
+    /^\d{3}$/.test(String(value.cvv))
   );
 }
 
@@ -113,6 +118,61 @@ function saveTransaction(transaction: Transaction): void {
   );
 }
 
+function restoreStoredValue(key: StorageKey, value: string | null): void {
+  if (value === null) {
+    localStorage.removeItem(key);
+    return;
+  }
+
+  localStorage.setItem(key, value);
+}
+
+function applyApprovedTransaction(
+  transaction: Transaction,
+): TransactionApplicationResult {
+  const user = getUser();
+  const transactions = getTransactions();
+
+  if (!user) {
+    return 'persistence_error';
+  }
+
+  const alreadyApplied = transactions.some(
+    (storedTransaction) =>
+      storedTransaction.id === transaction.id ||
+      storedTransaction.reference === transaction.reference,
+  );
+
+  if (alreadyApplied) {
+    return 'duplicate';
+  }
+
+  const updatedUser = {
+    ...user,
+    balance: user.balance + transaction.amount,
+  };
+  const previousUser = localStorage.getItem(STORAGE_KEYS.user);
+  const previousTransactions = localStorage.getItem(STORAGE_KEYS.transactions);
+
+  try {
+    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(updatedUser));
+    localStorage.setItem(
+      STORAGE_KEYS.transactions,
+      JSON.stringify([...transactions, transaction]),
+    );
+    return 'applied';
+  } catch {
+    try {
+      restoreStoredValue(STORAGE_KEYS.user, previousUser);
+      restoreStoredValue(STORAGE_KEYS.transactions, previousTransactions);
+    } catch {
+      // localStorage can remain unavailable; the caller keeps its prior state.
+    }
+
+    return 'persistence_error';
+  }
+}
+
 export const storageService = {
   getUser,
   saveUser,
@@ -122,4 +182,5 @@ export const storageService = {
   updateBalance,
   getTransactions,
   saveTransaction,
+  applyApprovedTransaction,
 };

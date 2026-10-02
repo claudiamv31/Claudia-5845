@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react';
+import { forwardRef, type ComponentPropsWithoutRef } from 'react';
 
 interface FormFieldProps
   extends Omit<
@@ -12,30 +12,29 @@ interface FormFieldProps
   invalid?: boolean;
 }
 
-export function FormField({
-  id,
-  label,
-  error,
-  descriptionId,
-  invalid,
-  ...inputProps
-}: FormFieldProps) {
-  const errorId = `${id}-error`;
+export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
+  function FormField(
+    { id, label, error, descriptionId, invalid, ...inputProps },
+    ref,
+  ) {
+    const errorId = `${id}-error`;
 
-  return (
-    <div className="form-field">
-      <label htmlFor={id}>{label}</label>
-      <input
-        {...inputProps}
-        id={id}
-        aria-describedby={error ? errorId : descriptionId}
-        aria-invalid={invalid ?? Boolean(error)}
-      />
-      {error ? (
-        <p id={errorId} className="field-error" role="alert">
-          {error}
-        </p>
-      ) : null}
-    </div>
-  );
-}
+    return (
+      <div className="form-field">
+        <label htmlFor={id}>{label}</label>
+        <input
+          {...inputProps}
+          ref={ref}
+          id={id}
+          aria-describedby={error ? errorId : descriptionId}
+          aria-invalid={invalid ?? Boolean(error)}
+        />
+        {error ? (
+          <p id={errorId} className="field-error" role="alert">
+            {error}
+          </p>
+        ) : null}
+      </div>
+    );
+  },
+);
