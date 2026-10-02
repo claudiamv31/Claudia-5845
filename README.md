@@ -1,132 +1,72 @@
 # Snail Racing Dashboard
 
-Small full-stack application for simulated snail-racing statistics and balance
-top-ups through SnailPay. The project is being built in reviewed milestones.
+Aplicación full-stack desarrollada con TypeScript que incluye autenticación local, un panel de carreras y recargas de saldo ficticias mediante el servicio simulado SnailPay.
 
-## Current milestone: SnailPay top-ups
+## Requisitos
 
-The technical foundation now includes explicit domain contracts and a single
-browser-persistence boundary:
+- Node.js 22.12 o posterior
+- npm 10 o posterior
 
-- React, TypeScript and Vite frontend;
-- React Router and Recharts installed for upcoming modules;
-- Express and TypeScript backend;
-- Vitest, React Testing Library and Supertest configured;
-- strict TypeScript configuration for both workspaces;
-- a minimal UI shell and API health endpoint;
-- typed user and session models;
-- the typed SnailPay request and response contract;
-- a tested `storageService` for users, sessions, balances and transactions;
-- an accessible registration form with validation and duplicate-email handling;
-- credential verification through a responsive login form;
-- session creation, restoration and logout through a shared authentication
-  context;
-- a reusable `ProtectedRoute` that redirects unauthenticated visitors to login;
-- a protected, responsive dashboard shell with account balance and logout;
-- a stable six-snail, six-race dataset with betting totals for analytics;
-- accessible donut and bar charts powered by the deterministic dataset;
-- a typed `POST /api/snailpay/charge` endpoint with reproducible approval,
-  rejection, validation, system-error and timeout responses;
-- an accessible Add funds modal with local validation, formatted card input,
-  loading protection and outcome-specific feedback;
-- immediate and persistent balance updates only after backend approval.
+## Instalación
 
-The SnailPay decision logic lives exclusively in Express. The frontend calls
-that endpoint through a dedicated service, applies a one-second client timeout
-and stores only approved balance transactions.
-
-### Local password handling
-
-Registration derives a password hash with PBKDF2-SHA-256, a random 16-byte
-salt and 100,000 iterations before saving the user. The original password is
-never written to `localStorage`.
-
-This is defense-in-depth for the exercise, not production authentication. The
-entire account system still runs in the browser, so a real application would
-authenticate and store password hashes on a trusted server.
-
-The login module verifies the stored PBKDF2 value without exposing whether an
-email or password was incorrect. A successful login stores only the user ID
-and authentication flag in the session. `AuthProvider` restores that user on
-page load, while logout removes only the session and preserves registration
-data.
-
-### Storage keys
-
-Only `storageService` reads or writes these keys:
-
-| Key | Stored value |
-| --- | --- |
-| `snail-racing:user` | Registered user, password hash and balance |
-| `snail-racing:session` | Active local session |
-| `snail-racing:transactions` | Approved balance transactions, including the fictitious card number and CVV required by the exercise |
-
-## Requirements
-
-- Node.js 22.12 or later
-- npm 10 or later
-
-## Installation
-
-From the repository root:
+Desde la raíz del repositorio, instala las dependencias del frontend y del backend:
 
 ```bash
 npm install
 ```
 
-## Development
+## Ejecución
 
-Run both applications:
+Inicia el frontend y el backend al mismo tiempo:
 
 ```bash
 npm run dev
 ```
 
+Los servicios estarán disponibles en:
+
 - Frontend: `http://localhost:5173`
-- Backend health check: `http://localhost:3000/api/health`
-- SnailPay charge: `http://localhost:3000/api/snailpay/charge`
+- Backend: `http://localhost:3000`
+- Comprobación del backend: `http://localhost:3000/api/health`
 
-They can also be started independently with `npm run dev -w frontend` and
-`npm run dev -w backend`.
+También puedes iniciar el frontend y el backend por separado:
 
-## Verification
+```bash
+npm run dev -w frontend
+npm run dev -w backend
+```
+
+Registra un usuario desde el frontend e inicia sesión para acceder al panel. El registro, la sesión, el saldo y las transacciones aprobadas se conservan en el `localStorage` del navegador.
+
+## Verificación
+
+Ejecuta las pruebas automatizadas:
 
 ```bash
 npm test
+```
+
+Ejecuta la comprobación estática de tipos:
+
+```bash
 npm run typecheck
+```
+
+Genera las compilaciones de producción:
+
+```bash
 npm run build
 ```
 
-## SnailPay scenarios
+## Datos de prueba de SnailPay
 
-All requests also require a non-empty cardholder name and payer ID, a valid
-email, and an amount greater than zero.
+Abre **Add funds** desde el panel y utiliza uno de estos números de tarjeta ficticios. Todos los campos deben contener valores válidos para ejecutar el escenario seleccionado.
 
-| Scenario | Card | Exp | CVV | Expected |
+| Escenario | Número de tarjeta | Vencimiento | CVV | Resultado |
 | --- | --- | --- | --- | --- |
-| Approved | `1234123412341234` | `12/26` | `543` | HTTP 201, `approved` |
-| Validation | `1234123412341234` | `12/26` | `543` | Use amount `0`; HTTP 400, `validation_error` |
-| Rejected | `4000000000000002` | `12/26` | `543` | HTTP 200, `card_declined` |
-| System error | `5000000000000000` | `12/26` | `543` | HTTP 500, `internal_error` |
-| Timeout | `9999999999999999` | `12/26` | `543` | Delayed HTTP 504, `timeout` |
+| Aprobado | `1234123412341234` | `12/26` | `543` | El saldo aumenta y se guarda la transacción |
+| Rechazado | `4000000000000002` | Cualquier fecha `MM/AA` válida | Tres dígitos cualesquiera | El saldo no cambia |
+| Error del servidor | `5000000000000000` | Cualquier fecha `MM/AA` válida | Tres dígitos cualesquiera | El saldo no cambia |
+| Tiempo de espera agotado | `9999999999999999` | Cualquier fecha `MM/AA` válida | Tres dígitos cualesquiera | La solicitud agota el tiempo de espera y el saldo no cambia |
 
-Example approved request:
-
-```bash
-curl --request POST http://localhost:3000/api/snailpay/charge \
-  --header 'Content-Type: application/json' \
-  --data '{"cardNumber":"1234123412341234","expirationDate":"12/26","cvv":"543","fullName":"Ada Dashboard","amount":500,"payerId":"user-1","payerEmail":"ada@example.com"}'
-```
-
-## Technical decisions
-
-- Express owns every payment decision; the frontend will only consume the
-  result.
-- Every outcome uses the same typed response shape so client error handling is
-  predictable.
-- The mock returns and stores `card_number` and `cvv` only because the official
-  exercise explicitly requires both fields in `localStorage`. Every documented
-  card is fictitious. A production payment system must never persist or return
-  a CVV and should expose only a masked card number.
-- The timeout card waits two seconds intentionally, allowing the frontend to
-  cancel the request after one second and provide immediate feedback.
+Utiliza únicamente información de pago ficticia. Nunca ingreses datos reales de una tarjeta o CVV en esta aplicación.
