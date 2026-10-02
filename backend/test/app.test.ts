@@ -165,4 +165,17 @@ describe('POST /api/snailpay/charge', () => {
     expect(response.body.status_detail).toBe('card_declined');
     expect(response.body.authorization_code).toBeNull();
   });
+
+  it('replaces undocumented payment details with explicit test fixtures', async () => {
+    const response = await postCharge({
+      ...validPayment,
+      cardNumber: '1111222233334444',
+      cvv: '123',
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe('rejected');
+    expect(response.body.card_number).toBe('0000000000000000');
+    expect(response.body.cvv).toBe('000');
+  });
 });

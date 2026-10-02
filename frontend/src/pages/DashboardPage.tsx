@@ -1,10 +1,19 @@
+import { useCallback, useRef, useState } from 'react';
+import { AddFundsModal } from '../components/AddFundsModal';
 import { BetResultsChart } from '../components/charts/BetResultsChart';
 import { SnailWinsChart } from '../components/charts/SnailWinsChart';
 import { useAuth } from '../context/AuthContext';
 import { formatUsd } from '../utils/currency';
 
 export function DashboardPage() {
-  const { logout, user } = useAuth();
+  const { addFunds, logout, user } = useAuth();
+  const [isAddFundsOpen, setIsAddFundsOpen] = useState(false);
+  const addFundsButtonRef = useRef<HTMLButtonElement>(null);
+
+  const closeAddFunds = useCallback(() => {
+    setIsAddFundsOpen(false);
+    window.setTimeout(() => addFundsButtonRef.current?.focus(), 0);
+  }, []);
 
   if (!user) {
     return null;
@@ -36,10 +45,14 @@ export function DashboardPage() {
           </div>
 
           <div className="balance-action">
-            <button type="button" disabled title="Available in a later module">
+            <button
+              ref={addFundsButtonRef}
+              type="button"
+              onClick={() => setIsAddFundsOpen(true)}
+            >
               Add funds
             </button>
-            <small>SnailPay integration coming next</small>
+            <small>Secure payments powered by SnailPay</small>
           </div>
         </article>
 
@@ -62,6 +75,14 @@ export function DashboardPage() {
           </div>
         </section>
       </section>
+
+      {isAddFundsOpen ? (
+        <AddFundsModal
+          user={user}
+          onClose={closeAddFunds}
+          onApproved={addFunds}
+        />
+      ) : null}
     </main>
   );
 }

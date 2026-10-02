@@ -3,7 +3,7 @@
 Small full-stack application for simulated snail-racing statistics and balance
 top-ups through SnailPay. The project is being built in reviewed milestones.
 
-## Current milestone: SnailPay backend
+## Current milestone: SnailPay top-ups
 
 The technical foundation now includes explicit domain contracts and a single
 browser-persistence boundary:
@@ -26,11 +26,14 @@ browser-persistence boundary:
 - a stable six-snail, six-race dataset with betting totals for analytics;
 - accessible donut and bar charts powered by the deterministic dataset;
 - a typed `POST /api/snailpay/charge` endpoint with reproducible approval,
-  rejection, validation, system-error and timeout responses.
+  rejection, validation, system-error and timeout responses;
+- an accessible Add funds modal with local validation, formatted card input,
+  loading protection and outcome-specific feedback;
+- immediate and persistent balance updates only after backend approval.
 
-The SnailPay decision logic now lives exclusively in Express. The dashboard
-payment action remains disabled until the frontend integration module is
-introduced.
+The SnailPay decision logic lives exclusively in Express. The frontend calls
+that endpoint through a dedicated service, applies a one-second client timeout
+and stores only approved balance transactions.
 
 ### Local password handling
 
@@ -56,7 +59,7 @@ Only `storageService` reads or writes these keys:
 | --- | --- |
 | `snail-racing:user` | Registered user, password hash and balance |
 | `snail-racing:session` | Active local session |
-| `snail-racing:transactions` | Approved balance transactions |
+| `snail-racing:transactions` | Approved balance transactions, including the fictitious card number and CVV required by the exercise |
 
 ## Requirements
 
@@ -102,6 +105,7 @@ email, and an amount greater than zero.
 | Scenario | Card | Exp | CVV | Expected |
 | --- | --- | --- | --- | --- |
 | Approved | `1234123412341234` | `12/26` | `543` | HTTP 201, `approved` |
+| Validation | `1234123412341234` | `12/26` | `543` | Use amount `0`; HTTP 400, `validation_error` |
 | Rejected | `4000000000000002` | `12/26` | `543` | HTTP 200, `card_declined` |
 | System error | `5000000000000000` | `12/26` | `543` | HTTP 500, `internal_error` |
 | Timeout | `9999999999999999` | `12/26` | `543` | Delayed HTTP 504, `timeout` |
@@ -120,8 +124,9 @@ curl --request POST http://localhost:3000/api/snailpay/charge \
   result.
 - Every outcome uses the same typed response shape so client error handling is
   predictable.
-- The mock echoes `card_number` and `cvv` only because the requested exercise
-  contract includes them. A production payment API must never return or log a
-  CVV and should expose only a masked card number.
+- The mock returns and stores `card_number` and `cvv` only because the official
+  exercise explicitly requires both fields in `localStorage`. Every documented
+  card is fictitious. A production payment system must never persist or return
+  a CVV and should expose only a masked card number.
 - The timeout card waits two seconds intentionally, allowing the frontend to
-  demonstrate client-side cancellation in the next module.
+  cancel the request after one second and provide immediate feedback.

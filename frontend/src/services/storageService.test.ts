@@ -22,6 +22,8 @@ const transaction: Transaction = {
   amount: 500,
   createdAt: '2026-09-30T18:00:00.000Z',
   reference: 'SNAIL-001',
+  cardNumber: '1234123412341234',
+  cvv: '543',
 };
 
 describe('storageService', () => {
@@ -67,6 +69,15 @@ describe('storageService', () => {
 
     storageService.saveTransaction(transaction);
 
+    expect(storageService.getTransactions()).toEqual([transaction]);
+  });
+
+  it('applies an approved transaction only once', () => {
+    storageService.saveUser(user);
+
+    expect(storageService.applyApprovedTransaction(transaction)).toBe('applied');
+    expect(storageService.applyApprovedTransaction(transaction)).toBe('duplicate');
+    expect(storageService.getUser()?.balance).toBe(500);
     expect(storageService.getTransactions()).toEqual([transaction]);
   });
 

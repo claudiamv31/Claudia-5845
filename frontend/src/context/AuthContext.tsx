@@ -13,7 +13,12 @@ import {
   type RegistrationInput,
   type RegistrationResult,
 } from '../services/authService';
+import { storageService } from '../services/storageService';
 import type { AuthenticatedUser } from '../types/auth';
+import type {
+  Transaction,
+  TransactionApplicationResult,
+} from '../types/transaction';
 
 interface AuthContextValue {
   user: AuthenticatedUser | null;
@@ -21,6 +26,7 @@ interface AuthContextValue {
   register: (input: RegistrationInput) => Promise<RegistrationResult>;
   login: (input: LoginInput) => Promise<LoginResult>;
   logout: () => void;
+  addFunds: (transaction: Transaction) => TransactionApplicationResult;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -59,6 +65,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUser(null);
   }, []);
 
+  const addFunds = useCallback((transaction: Transaction) => {
+    const result = storageService.applyApprovedTransaction(transaction);
+
+    if (result === 'persistence_error') {
+      return result;
+    }
+
+    const updatedUser = storageService.getUser();
+
+    if (updatedUser) {
+      setUser({
+        id: updatedUser.id,
+        fullName: updatedUser.fullName,
+        email: updatedUser.email,
+        balance: updatedUser.balance,
+      });
+    }
+
+    return updatedUser ? result : 'persistence_error';
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
@@ -66,8 +93,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       register,
       login,
       logout,
+      addFunds,
     }),
-    [login, logout, register, user],
+    [addFunds, login, logout, register, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -14,11 +14,21 @@ export interface SnailPayChargeResult {
 const TIMEOUT_DELAY_MS = 2_000;
 const INTERNAL_ERROR_CARD_NUMBER = '5000000000000000';
 const TIMEOUT_CARD_NUMBER = '9999999999999999';
+const REJECTED_CARD_NUMBER = '4000000000000002';
+const TEST_CARD_PLACEHOLDER = '0000000000000000';
+const TEST_CVV = '543';
+const TEST_CVV_PLACEHOLDER = '000';
 const APPROVED_PAYMENT_METHOD = {
   cardNumber: '1234123412341234',
   expirationDate: '12/26',
-  cvv: '543',
+  cvv: TEST_CVV,
 } as const;
+const DOCUMENTED_CARD_NUMBERS = new Set([
+  APPROVED_PAYMENT_METHOD.cardNumber,
+  REJECTED_CARD_NUMBER,
+  INTERNAL_ERROR_CARD_NUMBER,
+  TIMEOUT_CARD_NUMBER,
+]);
 
 function wait(milliseconds: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -78,8 +88,10 @@ function createResponse(
     reference: `snailpay-${paymentId}`,
     payer_id: payment.payerId,
     payer_email: payment.payerEmail,
-    card_number: payment.cardNumber,
-    cvv: payment.cvv,
+    card_number: DOCUMENTED_CARD_NUMBERS.has(payment.cardNumber)
+      ? payment.cardNumber
+      : TEST_CARD_PLACEHOLDER,
+    cvv: payment.cvv === TEST_CVV ? payment.cvv : TEST_CVV_PLACEHOLDER,
   };
 }
 
