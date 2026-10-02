@@ -14,7 +14,8 @@ export type SnailPayStatusDetail =
   | 'approved'
   | 'card_declined'
   | 'validation_error'
-  | 'internal_error';
+  | 'internal_error'
+  | 'timeout';
 
 export interface SnailPayChargeResponse {
   id: string;
